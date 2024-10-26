@@ -16,7 +16,7 @@ Please contact zhenbaochen1012@163.com if you have questions.
 conda create -n retfound python=3.10 -y
 conda activate retfound
 ```
-###2. Install dependencies:
+### 2. Install dependencies:
 
 ```bash
 git clone https://github.com/Baochen1012/Multimodal_AMD
@@ -33,10 +33,10 @@ pip install -r requirements.txt
 
 ## Data
 
-MMC-AMD, a multi-modal fundus image set consisting of 1,093 color fundus photograph (CFP) images and 1,288 OCT B-scan images (~470MB). Freely available upon request and for research purposes only. Please submit your request via [Google Form](https://forms.gle/jJT6H9N9CY34gFBWA).
+**MMC-AMD**, a multi-modal fundus image set consisting of 1,093 color fundus photograph (CFP) images and 1,288 OCT B-scan images (~470MB). Freely available upon request and for research purposes only. Please submit your request via [Google Form](https://forms.gle/jJT6H9N9CY34gFBWA).
 
-- MMC-AMD (splitA): An eye-based split of training / validation / test sets (zero eye overlap) [Download](https://drive.google.com/file/d/1El2pBzNnQsjRVLE_QwFNhS05HWJMPwkU/view?usp=sharing)
-- MMC-AMD (splitAP): A patient-based split of training / validation / test sets (zero patient overlap) [Download](https://drive.google.com/file/d/1KwJdsQmO__TpCW2AcRdsoTocu-zwcZuT/view?usp=sharing)
+- **MMC-AMD (splitA)**: An eye-based split of training / validation / test sets (zero eye overlap) [Download](https://drive.google.com/file/d/1El2pBzNnQsjRVLE_QwFNhS05HWJMPwkU/view?usp=sharing).
+- **MMC-AMD (splitAP)**: A patient-based split of training / validation / test sets (zero patient overlap) [Download](https://drive.google.com/file/d/1KwJdsQmO__TpCW2AcRdsoTocu-zwcZuT/view?usp=sharing).
 
 ## Instructions
 
