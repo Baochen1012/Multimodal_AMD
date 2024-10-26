@@ -13,8 +13,8 @@ Please contact zhenbaochen1012@163.com if you have questions.
 ### 1. Create environment with conda:
 
 ```bash
-conda create -n retfound python=3.10 -y
-conda activate retfound
+conda create -n Multimodal_AMD python=3.10 -y
+conda activate Multimodal_AMD
 ```
 ### 2. Install dependencies:
 
