@@ -4,7 +4,7 @@ Code and data for multi-modal categorization of age-related macular degeneration
 
 This study proposes a novel deep learning model that leverages the joint diagnostic potential of CFP and OCT images for the automatic detection of multi-modal AMD. We effectively extend the pre-trained retinal foundation model through fine-tuning to create a model for multi-modal AMD recognition. Specifically, CFP and OCT images are processed by two independent ViT-large models for feature extraction, generating high-dimensional feature representations for each modality. These feature representations are input into the DCCA module after undergoing nonlinear transformations. DCCA performs fine-grained nonlinear mapping on the features of different modalities through two independent neural networks, aiming to maximize the nonlinear correlation between the two modalities, thus achieving efficient cross-modal feature fusion. Subsequently, we employ a concatenation fusion strategy to effectively merge the transformed features from both modalities, forming a comprehensive feature vector. Finally, we utilize the fused features to train a classifier for AMD classification. To address the challenge of significantly increased computational complexity during the multi-modal integration process, this study introduces LoRA technology for model fine-tuning. LoRA optimizes a high-dimensional parameter matrix by decomposing it into two low-rank matrices, allowing only a small number of parameters to be adjusted during fine-tuning.
 
-![The overall architecture of the proposed approach](https://github.com/Baochen1012/Multimodal_AMD/overall_framework.png)
+![The overall architecture of the proposed approach](https://github.com/Baochen1012/Multimodal_AMD/blob/main/overall_framework.png)
 
 Please contact zhenbaochen1012@163.com if you have questions.
 
@@ -15,13 +15,14 @@ Please contact zhenbaochen1012@163.com if you have questions.
 ```bash
 conda create -n retfound python=3.10 -y
 conda activate retfound
-
+```
 ###2. Install dependencies:
 
 ```bash
 git clone https://github.com/Baochen1012/Multimodal_AMD
 cd Multimodal_AMD
 pip install -r requirements.txt
+```
 
 ## Download the RETFound pre-trained weights
 
