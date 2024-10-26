@@ -164,6 +164,19 @@ class CombinedModel(nn.Module):
         x = self.fc2(x)
         return x
 
+##scikit-learn、classification_report函数并不直接提供特异性(specificity)的计算
+def calculate_specificity(cm,class_index):
+    tp=cm[class_index,class_index]
+    fn=cm[class_index,:].sum() - tp
+    fp=cm[:,class_index].sum()-tp
+    tn=cm.sum()-(tp+fn+fp)
+    specificity=tn/(tn+fp)
+    return specificity
+def calculate_overall_specificity(cm):
+    specificities=[]
+    for class_index in range(len(cm)):
+        specificities.append(calculate_specificity(cm,class_index))
+    return sum(specificities)/len(specificities)
 
 def test_model(model, test_loader,device = None,savepath =  os.path.join(script_dir,'combineCCALoRAEarly_model.pth')):
     if device is None:
@@ -177,6 +190,9 @@ def test_model(model, test_loader,device = None,savepath =  os.path.join(script_
     y_true = []
     y_pred = []
     y_pred_probs = []
+    # 出T-SNE
+    all_features = []
+    all_labels = []
 
     print("Starting model evaluation...")
     with torch.no_grad():  # Disable gradient calculation禁用梯度计算
@@ -190,14 +206,51 @@ def test_model(model, test_loader,device = None,savepath =  os.path.join(script_
             y_pred.extend(predicted.cpu().numpy())
             y_pred_probs.extend(probabilities.cpu().numpy())
 
-    # Calculate evaluation metrics
+            all_features.append(outputs.detach().cpu().numpy())
+            all_labels.append(labels.cpu().numpy())
+
+    #测试集T-SNE图
+    all_features = np.concatenate(all_features, axis=0)
+    all_labels = np.concatenate(all_labels, axis=0)
+    ##T-SNE可视化
+    tsne = TSNE(n_components=2, random_state=42)
+    X_tsne = tsne.fit_transform(all_features)
+
+    plt.figure(figsize=(10, 8))
+    scatter = plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=all_labels, cmap='viridis', alpha=0.7)
+    plt.colorbar(scatter, ticks=np.arange(4))
+    plt.xlabel('t-SNE Component 1')
+    plt.ylabel('t-SNE Component 2')
+    plt.title('t-SNE Visualization of Four-Class Data')
+    plt.savefig("T-SNE_Test.png")
+    plt.show()
+
+    # Calculate evaluation metrics 计算评估指标
     print("Calculating evaluation metrics...")
-    from sklearn.metrics import accuracy_score, roc_auc_score, average_precision_score
-    #测试集混淆矩阵
+    from sklearn.metrics import accuracy_score, roc_auc_score, average_precision_score,classification_report,confusion_matrix
+
+    #使用classification_report生成分类报告
+    target_names=['a_nor','b_dry','c_pcv','d_wet']
+    report=classification_report(y_true,y_pred,target_names=target_names,output_dict=True)
+
+    # # 测试集混淆矩阵   使用confusion生成的  归一化之前的
+    # cm = confusion_matrix(y_true, y_pred)
+    # labels = ["a_nor", "b_dry", "c_pcv", "d_wet"]
+    # plt.figure(figsize=(8, 6))
+    # sns.heatmap(cm, annot=True, cmap="Blues", fmt="d", xticklabels=labels, yticklabels=labels)
+    # plt.title("Confusion Matrix")
+    # plt.xlabel("Predicted Labels")
+    # plt.ylabel("True Labels")
+    # plt.savefig("confusion_matrix_test.png")
+    #
+    # plt.show()  # test测试集混淆矩阵
+
+    #测试集混淆矩阵   使用confusion生成的 归一化之后的
     cm= confusion_matrix(y_true,y_pred)
+    cm_normalized = cm.astype('float')/cm.sum(axis=1)[:,np.newaxis]
     labels=["a_nor","b_dry","c_pcv","d_wet"]
     plt.figure(figsize=(8,6))
-    sns.heatmap(cm,annot=True,cmap="Blues",fmt="d",xticklabels=labels,yticklabels=labels)
+    sns.heatmap(cm_normalized,annot=True,cmap="Blues",fmt=".4f",xticklabels=labels,yticklabels=labels)
     plt.title("Confusion Matrix")
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
@@ -205,6 +258,24 @@ def test_model(model, test_loader,device = None,savepath =  os.path.join(script_
 
     plt.show()  #test测试集混淆矩阵
 
+    #打印分类报告
+    print("Classification Report.....\n")
+    for label,metrics in report.items():
+        if label in target_names:
+            print(f"Class{label}:")
+            print(f"Recall(Sensitivity):{metrics['recall']:.4f}")
+            print(f"Specificity:{calculate_specificity(cm, target_names.index(label)):.4f}")
+            print(f"F1-score:{metrics['f1-score']:.4f}")
+            print(f"Precision:{metrics['precision']:.4f}")
+
+     #打印总体指标
+    print("\nOverall Metrics:")
+    print(f"Test Recall(Sensitivity):{report['macro avg']['recall']:.4f}")
+    print(f"Test Specificity:{calculate_overall_specificity(cm):.4f}")
+    print(f"Test F1-score:{report['macro avg']['f1-score']:.4f}")
+    print(f"Test Precision:{report['macro avg']['precision']:.4f}")
+
+       ###y_pred是类别标签，y_pred_probs是类别概率
     accuracy = accuracy_score(y_true, y_pred)
     auc_roc = roc_auc_score(y_true, y_pred_probs, multi_class='ovr')
     auc_pr = average_precision_score(y_true, y_pred_probs, average="macro")
@@ -227,7 +298,6 @@ def evaluate_model(model, val_loader, device, loss_function):   #计算loss来�
             oct_imgs, cfp_imgs, labels = oct_imgs.to(device), cfp_imgs.to(device), labels.to(device)
             #出结果
             outputs = model(oct_imgs, cfp_imgs)
-                # print(f"测试outputs是什么{outputs}")####测试outputs是什么
             #计算损失
             loss = loss_function(outputs, labels)
             total_loss += loss.item() * labels.size(0)
@@ -437,6 +507,15 @@ if __name__=='__main__':
 
     model = CombinedModel(model_oct_path, model_cfp_path, model_type, combined_out_features=256, num_classes=4,deepcca_outdim_size=128)
     model.to(torch.device('cuda'))
+
+    # print("要输出model")
+    # print(model)
+    # 打印参数
+    n_parameters_before = sum(p.numel() for p in model.parameters() if p.requires_grad)  ##p.requires_grad是指在梯度过程中可训练的参数数量
+    print('number of params (M): %.2f' % (n_parameters_before / 1.e6))    ##上面的CombinedModel已经用过Lora了，所以参数会减小。
+
     #实际运行需要替换成
     train_model(model, train_loader, val_loader, test_loader, epochs=100, patience=50, script_dir='', savepath='combineCCALoRAEarly_model.pth')
+    #仅测试结果
+    #test_model(model, test_loader, device=device, savepath='combineCCALoRAEarly_model.pth')
 
