@@ -38,6 +38,9 @@ pip install -r requirements.txt
 - **MMC-AMD (splitA)**: An eye-based split of training / validation / test sets (zero eye overlap) [Download](https://drive.google.com/file/d/1El2pBzNnQsjRVLE_QwFNhS05HWJMPwkU/view?usp=sharing).
 - **MMC-AMD (splitAP)**: A patient-based split of training / validation / test sets (zero patient overlap) [Download](https://drive.google.com/file/d/1KwJdsQmO__TpCW2AcRdsoTocu-zwcZuT/view?usp=sharing).
 
+## Model Zoo
+We've got the trained model weights all set up for you at [Google Drive](https://drive.google.com/file/d/1QiqFZNwZZhMkSUWDoFRQBeVmX13aLgr-/view?usp=drive_link).
+
 ## Instructions
 
 1. **pictures**: This directory contains various visualization results, including:
